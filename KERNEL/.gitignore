@@ -39,6 +39,12 @@ modules.builtin
 Module.symvers
 *.dwo
 
+# Temp files
+/.tmp_System.map
+/.tmp_versions
+/.tmp_vmlinux1
+/.tmp_vmlinux2
+
 #
 # Top-level generic files
 #
