@@ -393,6 +393,7 @@ MODULE_DEVICE_TABLE(of, capemgr_of_match);
 
 #endif
 
+
 static int bone_baseboard_scan(struct bone_baseboard *bbrd)
 {
 	struct capemgr_info *info = container_of(bbrd,
@@ -416,9 +417,14 @@ static int bone_baseboard_scan(struct bone_baseboard *bbrd)
 	}
 	memcpy(bbrd->signature, p, sizeof(bbrd->signature));
 
+	bbrd->signature[0] = 0xaa;
+	bbrd->signature[1] = 0x55;
+	bbrd->signature[2] = 0x33;
+	bbrd->signature[3] = 0xee;
+
 	p = bbrd->signature;
 	if (EE_FIELD_MAKE_HEADER(p) != EE_FIELD_HEADER_VALID) {
-		dev_err(&info->pdev->dev, "Invalid board signature '%08x'\n",
+		dev_err(&info->pdev->dev, "Invalid board signature(aa5533ee) '%08x'\n",
 			EE_FIELD_MAKE_HEADER(p));
 		return -ENODEV;
 	}
@@ -433,10 +439,43 @@ static int bone_baseboard_scan(struct bone_baseboard *bbrd)
 			BBRD_EE_FIELD_SERIAL_NUMBER,
 			bbrd->serial_number, sizeof(bbrd->serial_number));
 
+	bbrd->board_name[0]  = 'A';
+	bbrd->board_name[1]  = '3';
+	bbrd->board_name[2]  = '3';
+	bbrd->board_name[3]  = '5';
+	bbrd->board_name[4]  = 'B';
+	bbrd->board_name[5]  = 'N';
+	bbrd->board_name[6]  = 'L';
+	bbrd->board_name[7]  = 'T';
+	bbrd->board_name[8]  = '\0';
+
+	bbrd->revision[0] = '0';
+	bbrd->revision[1] = '0';
+	bbrd->revision[2] = 'C';
+	bbrd->revision[3] = '0';
+	bbrd->revision[4] = '\0';
+
+	bbrd->serial_number[0]  = '3';
+	bbrd->serial_number[1]  = '2';
+	bbrd->serial_number[2]  = '1';
+	bbrd->serial_number[3]  = '3';
+	bbrd->serial_number[4]  = 'B';
+	bbrd->serial_number[5]  = 'B';
+	bbrd->serial_number[6]  = 'B';
+	bbrd->serial_number[7]  = 'K';
+	bbrd->serial_number[8]  = '1';
+	bbrd->serial_number[9]  = '5';
+	bbrd->serial_number[10] = '6';
+	bbrd->serial_number[11] = '8';
+	bbrd->serial_number[12] = '\0';
+
+
 	/* board_name,version,manufacturer,part_number */
 	snprintf(bbrd->text_id, sizeof(bbrd->text_id) - 1,
 			"%s,%s,%s", bbrd->board_name, bbrd->revision,
 			bbrd->serial_number);
+
+
 
 	/* terminate always */
 	bbrd->text_id[sizeof(bbrd->text_id) - 1] = '\0';
@@ -1170,7 +1209,7 @@ static int capemgr_load_slot(struct bone_cape_slot *slot)
 	dev_dbg(dev, "slot #%d: dtbo '%s' loaded; converting to live tree\n",
 			slot->slotno, slot->dtbo);
 
-	of_fdt_unflatten_tree((unsigned long *)slot->fw->data, &slot->overlay);
+	of_fdt_unflatten_tree((void *)slot->fw->data, &slot->overlay);
 	if (slot->overlay == NULL) {
 		dev_err(dev, "slot #%d: Failed to unflatten\n",
 				slot->slotno);

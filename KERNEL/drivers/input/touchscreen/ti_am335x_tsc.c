@@ -146,6 +146,9 @@ static void titsc_step_config(struct titsc *ts_dev)
 	first_step = TOTAL_STEPS - tsc_steps;
 	/* Steps 16 to 16-coordinate_readouts is for X */
 	end_step = first_step + tsc_steps;
+	/* Enable external ref voltage for ADC:*/
+	config |= (STEPCHARGE_RFP(3) | STEPCHARGE_RFM(3));
+
 	for (i = end_step - ts_dev->coordinate_readouts; i < end_step; i++) {
 		titsc_writel(ts_dev, REG_STEPCONFIG(i), config);
 		titsc_writel(ts_dev, REG_STEPDELAY(i), STEPCONFIG_OPENDLY);
@@ -168,6 +171,9 @@ static void titsc_step_config(struct titsc *ts_dev)
 		break;
 	}
 
+	/* Enable external ref voltage for ADC:*/
+	config |= (STEPCHARGE_RFP(3) | STEPCHARGE_RFM(3));
+
 	/* 1 ... coordinate_readouts is for Y */
 	end_step = first_step + ts_dev->coordinate_readouts;
 	for (i = first_step; i < end_step; i++) {
@@ -178,6 +184,8 @@ static void titsc_step_config(struct titsc *ts_dev)
 	/* Make CHARGECONFIG same as IDLECONFIG */
 
 	config = titsc_readl(ts_dev, REG_IDLECONFIG);
+	/* Enable external ref voltage for ADC:*/
+	config |= (STEPCHARGE_RFP(3) | STEPCHARGE_RFM(3));
 	titsc_writel(ts_dev, REG_CHARGECONFIG, config);
 	titsc_writel(ts_dev, REG_CHARGEDELAY, ts_dev->charge_delay);
 
@@ -186,12 +194,18 @@ static void titsc_step_config(struct titsc *ts_dev)
 			STEPCONFIG_AVG_16 | ts_dev->bit_yp |
 			ts_dev->bit_xn | STEPCONFIG_INM_ADCREFM |
 			STEPCONFIG_INP(ts_dev->inp_xp);
+
+	/* Enable external ref voltage for ADC(end_step):*/
+	config |= (STEPCHARGE_RFP(3) | STEPCHARGE_RFM(3));
+
 	titsc_writel(ts_dev, REG_STEPCONFIG(end_step), config);
 	titsc_writel(ts_dev, REG_STEPDELAY(end_step),
 			STEPCONFIG_OPENDLY);
 
 	end_step++;
 	config |= STEPCONFIG_INP(ts_dev->inp_yn);
+
+
 	titsc_writel(ts_dev, REG_STEPCONFIG(end_step), config);
 	titsc_writel(ts_dev, REG_STEPDELAY(end_step),
 			STEPCONFIG_OPENDLY);

@@ -85,7 +85,7 @@ static u32 get_adc_step_bit(struct tiadc_device *adc_dev, int chan)
 static void tiadc_step_config(struct iio_dev *indio_dev)
 {
 	struct tiadc_device *adc_dev = iio_priv(indio_dev);
-	unsigned int stepconfig;
+	unsigned int stepconfig,config;
 	int i, steps = 0;
 
 	/*
@@ -104,6 +104,9 @@ static void tiadc_step_config(struct iio_dev *indio_dev)
 	else
 		stepconfig = STEPCONFIG_AVG_16 | STEPCONFIG_FIFO1;
 
+	/* Enable external ref voltage for ADC:*/
+	stepconfig |= (STEPCHARGE_RFP(3) | STEPCHARGE_RFM(3));
+
 	for (i = 0; i < adc_dev->channels; i++) {
 		int chan;
 
@@ -115,6 +118,13 @@ static void tiadc_step_config(struct iio_dev *indio_dev)
 		adc_dev->channel_step[i] = steps;
 		steps++;
 	}
+
+	/* Make CHARGECONFIG same as IDLECONFIG */
+	config = tiadc_readl(adc_dev, REG_IDLECONFIG);
+	/* Enable external ref voltage for ADC:*/
+	config |= (STEPCHARGE_RFP(3) | STEPCHARGE_RFM(3));
+	tiadc_writel(adc_dev, REG_CHARGECONFIG, config);
+
 }
 
 static irqreturn_t tiadc_irq_h(int irq, void *private)
